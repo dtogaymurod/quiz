@@ -181,8 +181,9 @@ function startScreen() {
     </div>` : `
     <div class="card who">
       <div class="avatar">${esc(initials)}</div>
-      <div><div style="font-weight:600">${esc(info.name)}</div><div class="note">Telegram orqali aniqlandi</div></div>
-    </div>`}
+      <div><div style="font-weight:600">${esc(info.name)}</div><div class="note">${info.byTopic ? "Shaxsiy topicingiz orqali aniqlandi" : "Telegram orqali aniqlandi"}</div></div>
+    </div>
+    ${info.byTopic && !info.resume ? `<div class="card" style="border:1.5px solid var(--bad);background:var(--bad-soft);color:var(--bad);font-weight:600">Bu test ${esc(info.name)} uchun. Agar siz ${esc(info.name)} bo'lmasangiz, bosmang: oynani yopib, o'z topicingizdagi linkni oching.</div>` : ""}`}
     <div class="card facts">
       <div class="fact"><b>${info.n}</b><span>savol</span></div>
       <div class="fact"><b>${info.perQ} s</b><span>har savolga</span></div>
