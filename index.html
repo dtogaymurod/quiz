@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dilshod ustoz Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* Layout: one phone-width column, one screen at a time (start, question, result), like a Telegram Mini App */
+:root{
+  --bg:#f4f3f1; --card:#ffffff; --fg:#1c1a18; --muted:#66615b; --line:#e0dcd7;
+  --accent:#ea580c; --accent-soft:#ffedd5; --accent-ink:#c2410c; --tg:#0284c7; --ig:#d946ef; --ok:#1d7a46; --ok-soft:#dcefe3; --bad:#b3362c; --bad-soft:#f6dedb; --warn:#a86a00;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151311; --card:#201d1a; --fg:#efebe6; --muted:#a39d96; --line:#36312c;
+  --accent:#fb8a3c; --accent-soft:#3b2414; --accent-ink:#fb9a55; --tg:#38bdf8; --ig:#e879f9; --ok:#5cc58a; --ok-soft:#163323; --bad:#ef7d72; --bad-soft:#3a1d1a; --warn:#e0a640; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151311; --card:#201d1a; --fg:#efebe6; --muted:#a39d96; --line:#36312c;
+  --accent:#fb8a3c; --accent-soft:#3b2414; --accent-ink:#fb9a55; --tg:#38bdf8; --ig:#e879f9; --ok:#5cc58a; --ok-soft:#163323; --bad:#ef7d72; --bad-soft:#3a1d1a; --warn:#e0a640; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{max-width:460px;margin:0 auto;padding-block:14px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mark{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--fg)}
+.mark i{width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--card);display:grid;place-items:center;font:800 17px var(--display);font-style:normal}
+.mark b{font:800 18px/1 var(--display)}
+.mark small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.brand .tg{font-size:13px;font-weight:600;color:var(--tg);text-decoration:none}
+.stay{display:flex;flex-direction:column;gap:10px;border-color:var(--accent);background:var(--accent-soft)}
+.stay b{font:800 18px var(--display);color:var(--accent-ink)}
+.stay .links{display:flex;gap:8px;flex-wrap:wrap}
+.stay a{flex:1;min-width:140px;text-align:center;text-decoration:none;font-weight:600;font-size:14px;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+.stay a.t{color:var(--tg)} .stay a.i{color:var(--ig)}
+.app{max-width:460px;margin:0 auto;padding-block:16px 32px;display:flex;flex-direction:column;gap:16px;min-height:100%}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.1;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:22px;line-height:1.25;margin:0;text-wrap:balance}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.who{display:flex;align-items:center;gap:12px}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fact{display:flex;flex-direction:column;gap:2px}
+.fact b{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums}
+.fact span{font-size:12px;color:var(--muted)}
+.rules{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:14px}
+.btn{appearance:none;border:0;border-radius:12px;padding:15px 18px;font:600 16px var(--body);background:var(--accent);color:var(--card);cursor:pointer;width:100%}
+.btn:focus-visible,.opt:focus-visible,.seg button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:52px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:8px 0;font:500 14px var(--mono);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
+.demo{border-style:dashed}
+.demo p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+/* question screen */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.count{font-family:var(--mono);font-size:14px;color:var(--muted)}
+.count b{color:var(--fg);font-size:18px}
+.bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.timer{position:relative;width:52px;height:52px;flex:none}
+.timer svg{width:52px;height:52px;transform:rotate(-90deg)}
+.timer circle{fill:none;stroke-width:5}
+.timer .track{stroke:var(--line)}
+.timer .run{stroke:var(--accent);stroke-linecap:round}
+.timer.low .run{stroke:var(--warn)}
+.timer span{position:absolute;inset:0;display:grid;place-items:center;font:500 16px var(--mono);font-variant-numeric:tabular-nums}
+.q{font-size:19px;font-weight:500;line-height:1.4;margin:0}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--card);color:var(--fg);border:1.5px solid var(--line);border-radius:12px;padding:14px;font:400 16px var(--body);cursor:pointer}
+.opt .k{width:28px;height:28px;flex:none;border-radius:8px;background:var(--bg);display:grid;place-items:center;font:500 14px var(--mono);color:var(--muted)}
+.opt.picked{border-color:var(--accent);background:var(--accent-soft)}
+.opt.picked .k{background:var(--accent);color:var(--card)}
+.opts.locked .opt{pointer-events:none}
+.hint{font-size:13px;color:var(--muted);text-align:center;margin:0}
+/* result */
+.score{display:flex;align-items:baseline;gap:8px}
+.score b{font-family:var(--display);font-weight:800;font-size:56px;line-height:1}
+.score span{color:var(--muted)}
+.tally{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.tile b{font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums}
+.tile span{font-size:12px}
+.tile.ok{background:var(--ok-soft);color:var(--ok)}
+.tile.bad{background:var(--bad-soft);color:var(--bad)}
+.tile.none{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.cell{border-radius:8px;padding:6px 0;text-align:center;font:500 13px var(--mono);display:flex;flex-direction:column;gap:1px}
+.cell.ok{background:var(--ok-soft);color:var(--ok)}
+.cell.bad{background:var(--bad-soft);color:var(--bad)}
+.cell.none{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.again{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.opt.right .k{background:var(--ok);color:var(--card)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad);animation:shake .4s}
+.opt.wrong .k{background:var(--bad);color:var(--card)}
+.verdict{font:800 18px var(--display);text-align:center;margin:0;min-height:1.4em}
+.verdict.ok{color:var(--ok)} .verdict.bad{color:var(--bad)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}.opt.wrong{animation:none}}
+</style>
+<style>*{box-sizing:border-box}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head>
+<body>
+<header class="brand">
+  <a class="mark" href="https://t.me/dilshod_english" target="_blank" rel="noopener"><i>D</i><span><b>Dilshod ustoz</b><small>English · IELTS</small></span></a>
+  <a class="tg" href="https://t.me/dilshod_english" target="_blank" rel="noopener">Telegram</a>
+</header>
+<div class="app" id="app"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script>
+// Web app URL from Apps Script: Deploy → Manage deployments → Web app URL
+const API_URL = "PASTE_WEB_APP_URL_HERE";
+
+const KEYS = "ABCDEFGHIJ";
+const app = document.getElementById("app");
+const tg = window.Telegram && window.Telegram.WebApp;
+const initData = tg ? tg.initData : "";
+let info = null, tick = null, hidden = 0, busy = false;
+
+if (tg) { tg.ready(); tg.expand(); try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {} }
+document.addEventListener("visibilitychange", () => { if (document.hidden && app.dataset.screen === "q") hidden++; });
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+async function api(action, body) {
+  for (let i = 0; i < 4; i++) {
+    try {
+      const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(Object.assign({ action, initData }, body || {})) });
+      return await res.json();
+    } catch (e) {
+      const n = document.getElementById("net");
+      if (n) n.textContent = "Internet sekin, qayta urinilmoqda…";
+      await wait(800 * (i + 1));
+    }
+  }
+  return { error: "network" };
+}
+
+function message(title, text) {
+  app.dataset.screen = "msg";
+  app.innerHTML = `<h1>${esc(title)}</h1><div class="card"><p class="note" style="font-size:15px">${esc(text)}</p></div>`;
+}
+
+async function boot() {
+  if (!initData) { message("Linkni Telegramda oching", "Bu test faqat guruhga yuborilgan link orqali, Telegram ichida ochiladi."); return; }
+  app.innerHTML = `<p class="hint">Yuklanmoqda…</p>`;
+  info = await api("info");
+  if (info.error === "closed") { message("Test yopilgan", "Bu testning vaqti tugagan. Natijalar guruhga yuborilgan."); return; }
+  if (info.error) { message("Ochib bo'lmadi", errorText(info.error)); return; }
+  if (info.result) { finish(info.result); return; }
+  startScreen();
+}
+
+function errorText(code) {
+  return ({ auth: "Telegram ma'lumotlari tasdiqlanmadi. Linkni guruhdan qayta oching.",
+    no_session: "Bunday test topilmadi. Guruhdagi oxirgi linkni oching.",
+    network: "Internetga ulanib bo'lmadi. Ulanishni tekshirib, qayta oching." })[code] || "Serverda xato. Birozdan keyin qayta oching.";
+}
+
+function startScreen() {
+  app.dataset.screen = "start";
+  const initials = (info.name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+  app.innerHTML = `
+    <div class="eyebrow">${esc(info.category && info.category !== "Umumiy" ? info.category : "Test")} · ${esc(info.group)}</div>
+    <h1>${esc(info.title)}</h1>
+    ${info.needName ? `
+    <div class="card" style="display:flex;flex-direction:column;gap:8px">
+      <label for="fullname" style="font-weight:600">Familiya va ismingiz</label>
+      <input id="fullname" autocomplete="name" placeholder="Masalan: Karimov Aziz" style="font:16px var(--body);padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)">
+      <span class="note">Bir marta yoziladi, keyingi testlarda so'ralmaydi.</span>
+    </div>` : `
+    <div class="card who">
+      <div class="avatar">${esc(initials)}</div>
+      <div><div style="font-weight:600">${esc(info.name)}</div><div class="note">Telegram orqali aniqlandi</div></div>
+    </div>`}
+    <div class="card facts">
+      <div class="fact"><b>${info.n}</b><span>savol</span></div>
+      <div class="fact"><b>${info.perQ} s</b><span>har savolga</span></div>
+      <div class="fact"><b>1</b><span>urinish</span></div>
+    </div>
+    <ul class="rules">
+      <li>Har savolga vaqtni o'qituvchi belgilagan: ${info.perQ} soniya.</li>
+      <li>Savollar bittadan chiqadi, oldingisiga qaytib bo'lmaydi.</li>
+      <li>Vaqt tugasa, savol javobsiz qoladi.</li>
+      <li>Har kimda savollar va variantlar tartibi har xil.</li>
+      <li>Javob bosilganda to'g'ri yoki noto'g'riligi chiqadi, to'g'ri variant ko'rsatilmaydi.</li>
+    </ul>
+    <button class="btn" id="go" type="button">${info.resume ? "Davom etish" : "Testni boshlash"}</button>
+    <p class="note" id="net"></p>`;
+  document.getElementById("go").onclick = begin;
+}
+
+async function begin() {
+  const btn = document.getElementById("go"), field = document.getElementById("fullname");
+  const name = field ? field.value.trim() : "";
+  if (field && name.split(/\s+/).length < 2) { document.getElementById("net").textContent = "Familiya va ismni to'liq yozing."; return; }
+  btn.disabled = true; btn.textContent = "Ochilmoqda…";
+  const res = await api("begin", { name });
+  if (res.needName) { info.needName = true; startScreen(); document.getElementById("net").textContent = "Familiya va ismni to'liq yozing."; return; }
+  if (res.error) { message("Boshlab bo'lmadi", res.error === "closed" ? "Test vaqti tugagan." : errorText(res.error)); return; }
+  if (res.result) { finish(res.result); return; }
+  showQ(res.question);
+}
+
+function showQ(q) {
+  app.dataset.screen = "q";
+  busy = false;
+  const n = info.n, R = 22, C = 2 * Math.PI * R;
+  app.innerHTML = `
+    <div class="top">
+      <div class="count"><b>${q.pos + 1}</b> / ${n}</div>
+      <div class="timer" id="timer"><svg viewBox="0 0 52 52"><circle class="track" cx="26" cy="26" r="${R}"/><circle class="run" id="ring" cx="26" cy="26" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="0"/></svg><span id="sec">${Math.ceil(q.remainingMs / 1000)}</span></div>
+    </div>
+    <div class="bar"><i style="width:${q.pos / n * 100}%"></i></div>
+    <p class="q">${esc(q.text)}</p>
+    <div class="opts" id="opts">
+      ${q.options.map((o, k) => `<button type="button" class="opt" id="o${k}"><span class="k">${KEYS[k]}</span><span>${esc(o)}</span></button>`).join("")}
+    </div>
+    <p class="verdict" id="verdict" aria-live="polite"></p>
+    <p class="hint" id="net">Javobni bosing. Tanlov o'zgartirilmaydi.</p>`;
+  const deadline = performance.now() + q.remainingMs, total = info.perQ * 1000;
+  q.options.forEach((_, k) => document.getElementById("o" + k).onclick = () => answer(q, k));
+  clearInterval(tick);
+  tick = setInterval(() => {
+    const left = Math.max(0, deadline - performance.now());
+    const sec = document.getElementById("sec");
+    if (!sec) return;
+    sec.textContent = Math.ceil(left / 1000);
+    document.getElementById("ring").style.strokeDashoffset = C * (1 - left / total);
+    document.getElementById("timer").classList.toggle("low", left <= 5000);
+    if (left <= 0) answer(q, null);
+  }, 100);
+}
+
+async function answer(q, k) {
+  if (busy) return;
+  busy = true;
+  clearInterval(tick);
+  document.getElementById("opts").classList.add("locked");
+  const el = k === null ? null : document.getElementById("o" + k);
+  if (el) el.classList.add("picked");
+  const res = await api("answer", { pos: q.pos, choice: k, hidden });
+  if (res.error) { message("Xato", errorText(res.error)); return; }
+  const v = document.getElementById("verdict");
+  if (res.ok === undefined) { /* out of sync: the server resent the current question */ }
+  else if (res.timeout) { v.textContent = "Vaqt tugadi"; v.className = "verdict bad"; buzz(); }
+  else if (res.ok) { el.classList.remove("picked"); el.classList.add("right"); v.textContent = "To'g'ri!"; v.className = "verdict ok"; confetti(el); }
+  else { el.classList.remove("picked"); el.classList.add("wrong"); v.textContent = "Noto'g'ri"; v.className = "verdict bad"; buzz(); }
+  if (res.question) { await wait(res.question.startsInMs || 0); showQ(res.question); }
+  else if (res.result) { await wait(1100); finish(res.result); }
+}
+
+function buzz() {
+  try { if (tg && tg.HapticFeedback) { tg.HapticFeedback.notificationOccurred("error"); return; } } catch (e) {}
+  try { navigator.vibrate && navigator.vibrate([90, 60, 90]); } catch (e) {}
+}
+
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function confetti(el) {
+  try { if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success"); } catch (e) {}
+  if (reduce) return;
+  const cv = document.getElementById("fx"), ctx = cv.getContext("2d"), dpr = devicePixelRatio || 1;
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const r = el.getBoundingClientRect(), cs = getComputedStyle(document.documentElement);
+  const cols = ["--accent", "--ok", "--tg", "--ig", "--warn"].map(c => cs.getPropertyValue(c).trim());
+  const ps = Array.from({ length: 70 }, () => ({ x: r.left + r.width / 2, y: r.top + r.height / 2, vx: (Math.random() - .5) * 9, vy: -Math.random() * 9 - 3,
+    s: 4 + Math.random() * 5, a: Math.random() * 6, va: (Math.random() - .5) * .4, c: cols[Math.floor(Math.random() * cols.length)] }));
+  const t0 = performance.now();
+  (function frame(t) {
+    const life = (t - t0) / 1000; ctx.clearRect(0, 0, innerWidth, innerHeight);
+    if (life > 1.1) return;
+    ctx.globalAlpha = Math.max(0, 1 - life / 1.1);
+    for (const p of ps) { p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); }
+    requestAnimationFrame(frame);
+  })(t0);
+}
+
+function finish(r) {
+  app.dataset.screen = "result";
+  clearInterval(tick);
+  const marks = (r.marks || "").split("");
+  app.innerHTML = `
+    <div class="eyebrow">Natijangiz · ${esc(info.title)}</div>
+    <div class="score"><b>${r.score}</b><span>/ 100 ball</span></div>
+    <div class="tally">
+      <div class="tile ok"><b>${r.correct}</b><span>to'g'ri</span></div>
+      <div class="tile bad"><b>${r.wrong}</b><span>noto'g'ri</span></div>
+      <div class="tile none"><b>${r.timeout}</b><span>vaqt tugadi</span></div>
+    </div>
+    ${marks.length ? `
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <h2>Savollar bo'yicha</h2>
+      <div class="grid">${marks.map((m, i) => {
+        const c = m === "1" ? "ok" : m === "0" ? "bad" : "none", s = m === "1" ? "✓" : m === "0" ? "✗" : "–";
+        return `<div class="cell ${c}" aria-label="${i + 1}-savol: ${c === "ok" ? "to'g'ri" : c === "bad" ? "noto'g'ri" : "javobsiz"}"><span>${i + 1}</span><span>${s}</span></div>`; }).join("")}</div>
+      <div class="legend"><span>✓ to'g'ri</span><span>✗ noto'g'ri</span><span>– vaqt tugadi</span></div>
+      <p class="note">Raqamlar sizga chiqqan tartibda. To'g'ri javoblar ko'rsatilmaydi.</p>
+    </div>` : ""}
+    <div class="card facts">
+      <div class="fact"><b>${r.correctTime} s</b><span>to'g'ri javoblarga</span></div>
+      <div class="fact"><b>${info.perQ} s</b><span>har savolga</span></div>
+      <div class="fact"><b>${r.n}</b><span>savol</span></div>
+    </div>
+    <p class="note">Natija Telegramda sizga shaxsan ham yuborildi. Reyting test yopilgach guruhga chiqadi.</p>
+    <div class="card stay">
+      <b>Dilshod ustoz bilan qoling!</b>
+      <div class="links"><a class="t" href="https://t.me/dilshod_english" target="_blank" rel="noopener">Telegram · dilshod_english</a><a class="i" href="https://instagram.com/dilshod.ustoz" target="_blank" rel="noopener">Instagram · dilshod.ustoz</a></div>
+    </div>`;
+}
+
+boot();
+</script>
+</body>
+</html>
