@@ -162,6 +162,8 @@ async function boot() {
 function errorText(code) {
   return ({ auth: "Telegram ma'lumotlari tasdiqlanmadi. Linkni guruhdan qayta oching.",
     no_session: "Bunday test topilmadi. Guruhdagi oxirgi linkni oching.",
+    no_student: "Bu topic hech bir talabaga biriktirilmagan. Ustozga yozing.",
+    not_yours: "Bu link boshqa talabaning topicidan. O'zingizning topicingizdagi linkni oching.",
     network: "Internetga ulanib bo'lmadi. Ulanishni tekshirib, qayta oching." })[code] || "Serverda xato. Birozdan keyin qayta oching.";
 }
 
